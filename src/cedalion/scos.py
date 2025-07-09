@@ -1,7 +1,7 @@
 import numpy as np
 import pickle
 import xarray as xr
-
+import os
 
 def test():
     print('This worked!\nCongradulations!\nYou have successfully loaded the SCOS fork.\nYou now have access to scos.py')
@@ -14,7 +14,8 @@ def compute_autocorrelation_mcx(
     wavelength = 852e-6,                                          # mm (hence e-6)
     n = 1.33,                                                     # refractive index
     T_exp = 4000e-6,                                              # camera exposure time in seconds
-    NUM_TAU = 128                                                 # number of Decorrelation times to simulate
+    NUM_TAU = 128,                                                # number of Decorrelation times to simulate
+    data_dir = os.getcwd()                                        # directory where the data will save
 ):
     """Calculates the temporal field autocorrelation for a given head model and probe geometry. 
     
@@ -26,7 +27,8 @@ def compute_autocorrelation_mcx(
         n: refractive index used for the head model.
         T_exp: Exposure time of the cameras in seconds.
         NUM_TAU: The number of non-zero decorrelation times used for the simulation.
-    
+        data_dir: directory where the data will save
+        
     Returns: 
         Returns none, but saves two variables:
             {date_time_str}data_DCS_optode.pickle: A dictionary containing the temporal field autocorrelation for each channel (source-detector pair) in the probe geometry. 
@@ -74,11 +76,11 @@ def compute_autocorrelation_mcx(
         data_DCS_optode[f'data_optode_tau{tau}'] = fluence_at_optodes
 
     # Save the optode data    
-    with open(f'{date_time_str}data_DCS_optode.pickle', 'wb') as f:
+    with open(f'{data_dir}\\{date_time_str}data_DCS_optode.pickle', 'wb') as f:
         pickle.dump(data_DCS_optode, f)
 
     # Save the voxel data in chunks
-    with open(f'{date_time_str}data_DCS_all_chunk.pickle', 'wb') as f:
+    with open(f'{data_dir}\\{date_time_str}data_DCS_all_chunk.pickle', 'wb') as f:
         for key, value in data_DCS_all.items():
             pickle.dump((key, value), f)
             print(key)
@@ -95,7 +97,8 @@ def compute_sensitivity_scos(
     dDb = 1e-7,                                                   # brain diffusion perturbation
     S = 1,                                                        # Source term
     v = 1,                                                        # Speed of light
-    beta = 1                                                      # Source coherence parameter
+    beta = 1,                                                     # Source coherence parameter
+    data_dir = os.getcwd()                                        # directory where the data will save
 ):
     """Calculate the sensitivity matrix for SCOS given the MCX output for the baseline temporal field autocorrelation using the rytov approximation.
     
@@ -112,6 +115,7 @@ def compute_sensitivity_scos(
         S: Source term. Changing this does not impact results showing relative activation.
         v: Speed of light. Changing this does not impact results showing relative activation.
         beta: Source coherence parameter. 
+        data_dir: directory where the data will save
 
     Returns: 
         xr.DataArray: Sensitivity matrix for each channel and vertex. Also saves the sensitivity matrix.
@@ -159,12 +163,12 @@ def compute_sensitivity_scos(
     d3 = fwm.unitinmm**3  
 
     # Load the data_DCS_optode pickle file
-    with open(f'{date_time_str}data_DCS_optode.pickle', 'rb') as f:
+    with open(f'{data_dir}\\{date_time_str}data_DCS_optode.pickle', 'rb') as f:
         data_DCS_optode = pickle.load(f)
 
     # Load the data_DCS_all  chuncked pickle file
     data_DCS_all = {}
-    with open(f'{date_time_str}data_DCS_all_chunk.pickle', 'rb') as f:
+    with open(f'{data_dir}\\{date_time_str}data_DCS_all_chunk.pickle', 'rb') as f:
         while True:
             try:
                 key, value = pickle.load(f)
@@ -240,7 +244,7 @@ def compute_sensitivity_scos(
             "is_brain": ("vertex", np.ones(num_vertices)),
         })
 
-    with open(f'{date_time_str}_sensitivity_matrix_rytov_xr.pickle', 'wb') as f:
+    with open(f'{data_dir}\\{date_time_str}_sensitivity_matrix_rytov_xr.pickle', 'wb') as f:
         pickle.dump(A_xr, f)
 
     return A_xr
