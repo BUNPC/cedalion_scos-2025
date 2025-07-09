@@ -1,3 +1,8 @@
+# Note for example image reconstruction for Mapping human cerebral blood flow with high-density, multi-channel speckle contrast optical spectroscopy
+
+To run the example SCOS image reconstruction notebook, first complete cedalion installation as described in the documentation below. You must be using the scos_validation branch to run the notebook. The example notebook can be found in the following directory within the repository:
+examples/head_models/imagerecon_scos.ipynb
+
 <p align="center">
     <img src="docs/img/IBS_clr_small.png" />
 </p>
